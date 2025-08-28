@@ -7,7 +7,7 @@ Fitur:
 - Confirm modal sebelum hapus
 - Loading bubble animation
 
-## Cara jalan cepat
+## Cara Pakai
 1. Install deps:
    ```bash
    npm install
