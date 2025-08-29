@@ -64,14 +64,14 @@
         <h1 className="text-2xl font-bold">Pengaturan</h1>
 
         {/* Tema */}
-        <section className="bg-white p-5 rounded-2xl shadow space-y-3">
+        {/* <section className="bg-white p-5 rounded-2xl shadow space-y-3">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Monitor size={18}/> Mode Tampilan
           </h2>
           <p className="text-sm text-gray-500">
             Mengikuti sistem: <span className="font-semibold">{theme}</span>
           </p>
-        </section>
+        </section> */}
 
         {/* Export */}
         <section className="bg-white p-5 rounded-2xl shadow space-y-3">
