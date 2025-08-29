@@ -74,10 +74,10 @@ export default function PaymentList({ refresh }) {
   const [delId, setDelId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState(null); // id item yg lagi expand
   const toast = useToast();
   const dropdownRef = useRef();
   const metodeOptions = ['Cash', 'Transfer', 'QRIS'];
-  const [val, setVal] = useState("");
 
   useEffect(()=>{ fetchData(); },[refresh]);
 
@@ -250,23 +250,36 @@ export default function PaymentList({ refresh }) {
                 </div>
 
                 {/* Data di bulan ini */}
-                {items.map(r => (
-                  <div key={r.id} className="bg-glass rounded-2xl p-4 flex items-center justify-between shadow mb-2">
-                    <div>
-                      <div className="font-medium">{r.nama}</div>
-                      <div className="text-sm text-gray-500">{r.metode} • {fmtDate(r.tanggal)}</div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right font-semibold text-blue-600">Rp {fmt(r.jumlah)}</div>
-                      <button 
-                        onClick={()=>{ setDelId(r.id); setModalOpen(true); }} 
-                        className="px-3 py-1 rounded-lg border"
+                {items.map(r => {
+                  const expanded = expandedId === r.id;
+                  return (
+                    <div key={r.id} className="bg-glass rounded-2xl p-4 shadow mb-2">
+                      <div 
+                        className="flex items-center justify-between cursor-pointer"
+                        onClick={() => setExpandedId(expanded ? null : r.id)}
                       >
-                        Hapus
-                      </button>
+                        <div>
+                          <div className="font-medium">{r.nama}</div>
+                          <div className="text-sm text-gray-500">{r.metode} • {fmtDate(r.tanggal)}</div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right font-semibold text-blue-600">Rp {fmt(r.jumlah)}</div>
+                          <button 
+                            onClick={(e)=>{ e.stopPropagation(); setDelId(r.id); setModalOpen(true); }} 
+                            className="px-3 py-1 rounded-lg border"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                      {expanded && (
+                        <div className="mt-3 text-sm text-indigo-700 border-t pt-2">
+                          keterangan : {r.keterangan || "Tidak ada keterangan."}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ))
           }
@@ -285,4 +298,3 @@ export default function PaymentList({ refresh }) {
     </>
   );
 }
-  
