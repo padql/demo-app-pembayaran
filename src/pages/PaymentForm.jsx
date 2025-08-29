@@ -9,8 +9,8 @@ function SlideToSubmit({
   loading = false,
   label = "Geser untuk Simpan",
   successLabel = "Terkirim",
-  width = 280,
-  height = 48,
+  width = 380,
+  height = 58,
 }) {
   const KNOB = 44;
   const MAX = Math.max(0, width - KNOB);
@@ -261,7 +261,7 @@ export default function PaymentForm({ onSuccess }) {
               disabled={!canSubmit}
               loading={loading}
               label="Geser untuk Simpan"
-              successLabel="Terkirim"
+              successLabel="Tersimpan!"
               width={280}
               height={48}
             />
