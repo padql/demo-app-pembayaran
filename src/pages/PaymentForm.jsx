@@ -18,15 +18,14 @@ function SlideToSubmit({
   const trackRef = useRef(null);
   const knobRef = useRef(null);
 
-  const [x, setX] = useState(0);            // posisi knob (px)
+  const [x, setX] = useState(0);            
   const [dragging, setDragging] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const firedRef = useRef(false);           // cegah onTrigger kepanggil 2x
+  const firedRef = useRef(false);           
 
   // reset saat loading selesai
   useEffect(() => {
     if (!loading && completed) {
-      // kasih delay dikit biar user lihat statusnya
       const t = setTimeout(() => {
         firedRef.current = false;
         setCompleted(false);
@@ -38,11 +37,11 @@ function SlideToSubmit({
 
   const clamp = (v) => Math.min(MAX, Math.max(0, v));
 
+  /* --------- POINTER EVENTS --------- */
   const pointerDown = (e) => {
     if (disabled || loading || completed) return;
     e.preventDefault();
     setDragging(true);
-    // ambil kontrol pointer biar gerakan tetap ke-capture walau keluar area
     knobRef.current?.setPointerCapture?.(e.pointerId);
   };
 
@@ -52,41 +51,73 @@ function SlideToSubmit({
     const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
     if (clientX == null) return;
 
-    // hitung posisi knob berdasar posisi pointer relatif ke track
     const newX = clamp(clientX - rect.left - KNOB / 2);
     setX(newX);
 
-    // kalau udah nyentuh ujung → kunci di ujung + trigger sekali
     if (newX >= MAX - 1 && !firedRef.current) {
       setX(MAX);
       setCompleted(true);
       setDragging(false);
       firedRef.current = true;
-      onTrigger?.(); // 🚀 submit langsung tanpa perlu lepas
+      onTrigger?.();
     }
   };
 
   const pointerUpOrLeave = () => {
     if (!dragging) return;
     setDragging(false);
-    if (!completed) {
-      // belum sampai kanan → balik kiri (smooth)
-      setX(0);
+    if (!completed) setX(0);
+  };
+
+  /* --------- TOUCH FALLBACK --------- */
+  const touchStart = () => {
+    if (disabled || loading || completed) return;
+    setDragging(true);
+  };
+
+  const touchMove = (e) => {
+    if (!dragging) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const clientX = e.touches[0]?.clientX;
+    if (clientX == null) return;
+
+    const newX = clamp(clientX - rect.left - KNOB / 2);
+    setX(newX);
+
+    if (newX >= MAX - 1 && !firedRef.current) {
+      setX(MAX);
+      setCompleted(true);
+      setDragging(false);
+      firedRef.current = true;
+      onTrigger?.();
     }
   };
 
-  // progress fill
+  const touchEnd = () => {
+    if (!dragging) return;
+    setDragging(false);
+    if (!completed) setX(0);
+  };
+
   const progressPct = Math.round((x / MAX) * 100);
 
   return (
     <div
       ref={trackRef}
-      className={`relative select-none overflow-hidden rounded-full`}
-      style={{ width, height, background: disabled ? "#e5e7eb" : "#f3f4f6" }}
+      className="relative select-none overflow-hidden rounded-full"
+      style={{
+        width,
+        height,
+        background: disabled ? "#e5e7eb" : "#f3f4f6",
+        touchAction: "none", // penting biar HP ga scroll
+      }}
       onPointerMove={pointerMove}
       onPointerUp={pointerUpOrLeave}
       onPointerCancel={pointerUpOrLeave}
       onPointerLeave={pointerUpOrLeave}
+      onTouchStart={touchStart}
+      onTouchMove={touchMove}
+      onTouchEnd={touchEnd}
     >
       {/* progress fill */}
       <div
@@ -97,7 +128,7 @@ function SlideToSubmit({
         }}
       />
 
-      {/* label tengah */}
+      {/* label */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <span
           className={`text-sm font-medium transition-colors ${
@@ -124,13 +155,13 @@ function SlideToSubmit({
           height: KNOB - 2,
           transform: `translateX(${x}px)`,
           left: 2,
+          touchAction: "none",
         }}
         onPointerDown={pointerDown}
       >
         {completed ? "✓" : "➜"}
       </div>
 
-      {/* cover transparan saat loading/disabled biar gak bisa interaksi */}
       {(disabled || loading) && (
         <div className="absolute inset-0 cursor-not-allowed" />
       )}
@@ -150,8 +181,7 @@ export default function PaymentForm({ onSuccess }) {
     metode: "",
   });
 
-  const change = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const canSubmit =
     form.nama && form.jumlah && form.tanggal && form.metode && !loading;
@@ -188,7 +218,6 @@ export default function PaymentForm({ onSuccess }) {
       </h1>
       <p className="mb-6">Memudahkan laporan pendapatanmu.</p>
 
-      {/* pakai preventDefault supaya Enter tidak submit default */}
       <form onSubmit={(e) => e.preventDefault()} className="bg-glass rounded-3xl p-6 shadow-lg w-full">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
@@ -255,7 +284,6 @@ export default function PaymentForm({ onSuccess }) {
             />
           </div>
 
-          {/* Ganti tombol dengan slider */}
           <div className="md:col-span-2 flex justify-end">
             <SlideToSubmit
               onTrigger={submit}
