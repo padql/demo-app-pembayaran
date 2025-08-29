@@ -9,8 +9,8 @@ function SlideToSubmit({
   loading = false,
   label = "Geser untuk Simpan",
   successLabel = "Terkirim",
-  width = 380,
-  height = 58,
+  width = 280,
+  height = 48,
 }) {
   const KNOB = 44;
   const MAX = Math.max(0, width - KNOB);
