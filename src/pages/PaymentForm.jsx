@@ -255,7 +255,7 @@ export default function PaymentForm({ onSuccess }) {
             />
           </div>
 
-          <div className="md:col-span-2 flex justify-end">
+          <div className="md:col-span-2 flex justify-center">
             <SlideToSubmit
               onTrigger={submit}
               disabled={!canSubmit}
