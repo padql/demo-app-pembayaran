@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase.js';
 import Modal from '../components/Modal.jsx';
 import { useToast } from '../components/ToastProvider.jsx';
 import { Filter } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
 
 function fmt(n){ try{return Number(n).toLocaleString('id-ID')}catch{return n} }
 
@@ -272,11 +273,22 @@ export default function PaymentList({ refresh }) {
                           </button>
                         </div>
                       </div>
+                      <AnimatePresence initial={false}>
                       {expanded && (
-                        <div className="mt-3 text-sm text-indigo-700 border-t pt-2">
-                          keterangan : {r.keterangan || "Tidak ada keterangan."}
-                        </div>
+                        <motion.div
+                          key="expand"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-3 text-sm text-indigo-700 border-t pt-2">
+                            keterangan : {r.keterangan || "Tidak ada keterangan."}
+                          </div>
+                        </motion.div>
                       )}
+                    </AnimatePresence>
                     </div>
                   );
                 })}
