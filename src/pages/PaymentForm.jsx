@@ -9,21 +9,21 @@ function SlideToSubmit({
   loading = false,
   label = "Geser untuk Simpan",
   successLabel = "Terkirim",
-  width = 280,   // px
-  height = 48,   // px
+  width = 280,
+  height = 48,
 }) {
-  const KNOB = 44; // diameter knob
+  const KNOB = 44;
   const MAX = Math.max(0, width - KNOB);
 
   const trackRef = useRef(null);
   const knobRef = useRef(null);
+  const startX = useRef(0);
 
-  const [x, setX] = useState(0);            
+  const [x, setX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const firedRef = useRef(false);           
+  const firedRef = useRef(false);
 
-  // reset saat loading selesai
   useEffect(() => {
     if (!loading && completed) {
       const t = setTimeout(() => {
@@ -37,18 +37,20 @@ function SlideToSubmit({
 
   const clamp = (v) => Math.min(MAX, Math.max(0, v));
 
-  /* --------- POINTER EVENTS --------- */
+  /* ---------- POINTER EVENTS ---------- */
   const pointerDown = (e) => {
     if (disabled || loading || completed) return;
     e.preventDefault();
     setDragging(true);
+
+    startX.current = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
     knobRef.current?.setPointerCapture?.(e.pointerId);
   };
 
   const pointerMove = (e) => {
     if (!dragging) return;
     const rect = trackRef.current.getBoundingClientRect();
-    const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     if (clientX == null) return;
 
     const newX = clamp(clientX - rect.left - KNOB / 2);
@@ -63,37 +65,7 @@ function SlideToSubmit({
     }
   };
 
-  const pointerUpOrLeave = () => {
-    if (!dragging) return;
-    setDragging(false);
-    if (!completed) setX(0);
-  };
-
-  /* --------- TOUCH FALLBACK --------- */
-  const touchStart = () => {
-    if (disabled || loading || completed) return;
-    setDragging(true);
-  };
-
-  const touchMove = (e) => {
-    if (!dragging) return;
-    const rect = trackRef.current.getBoundingClientRect();
-    const clientX = e.touches[0]?.clientX;
-    if (clientX == null) return;
-
-    const newX = clamp(clientX - rect.left - KNOB / 2);
-    setX(newX);
-
-    if (newX >= MAX - 1 && !firedRef.current) {
-      setX(MAX);
-      setCompleted(true);
-      setDragging(false);
-      firedRef.current = true;
-      onTrigger?.();
-    }
-  };
-
-  const touchEnd = () => {
+  const pointerUp = () => {
     if (!dragging) return;
     setDragging(false);
     if (!completed) setX(0);
@@ -109,15 +81,12 @@ function SlideToSubmit({
         width,
         height,
         background: disabled ? "#e5e7eb" : "#f3f4f6",
-        touchAction: "none", // penting biar HP ga scroll
+        touchAction: "none", // 🔑 biar jari swipe ga trigger scroll
       }}
       onPointerMove={pointerMove}
-      onPointerUp={pointerUpOrLeave}
-      onPointerCancel={pointerUpOrLeave}
-      onPointerLeave={pointerUpOrLeave}
-      onTouchStart={touchStart}
-      onTouchMove={touchMove}
-      onTouchEnd={touchEnd}
+      onPointerUp={pointerUp}
+      onPointerCancel={pointerUp}
+      onPointerLeave={pointerUp}
     >
       {/* progress fill */}
       <div
@@ -132,9 +101,11 @@ function SlideToSubmit({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <span
           className={`text-sm font-medium transition-colors ${
-            completed ? "text-green-700"
-            : disabled ? "text-gray-400"
-            : "text-gray-700"
+            completed
+              ? "text-green-700"
+              : disabled
+              ? "text-gray-400"
+              : "text-gray-700"
           }`}
         >
           {loading ? "Menyimpan..." : completed ? successLabel : label}
